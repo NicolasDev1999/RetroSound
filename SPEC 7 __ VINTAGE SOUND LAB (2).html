@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SPEC 7 // VINTAGE SOUND LAB</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap">
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#020503; --panel:#0b100c; --metal1:#2a2f2b; --metal2:#121613; --metal3:#050705;
+  --g:#33ff66; --g-dim:#157a30; --g-faint:#0a3016; --amber:#ffb000; --red:#ff4a3d;
+  --glow:0 0 6px rgba(51,255,102,.75),0 0 18px rgba(51,255,102,.35);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% 30%,#07140a 0%,var(--bg) 70%);
+  color:var(--g);font-family:'Share Tech Mono','Courier New',monospace;display:flex;justify-content:center;padding:18px 12px}
+.rack{width:100%;max-width:980px;position:relative;border-radius:10px;padding:16px;
+  background:linear-gradient(145deg,var(--metal1),var(--metal2) 55%,var(--metal3));
+  border:2px solid #3a403b;box-shadow:inset 0 0 0 3px #0a0d0b,inset 0 2px 0 #4b524c,0 20px 60px #000,0 0 40px rgba(51,255,102,.08)}
+.screw{position:absolute;width:11px;height:11px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7b837c,#1c201d);box-shadow:inset 0 0 0 1px #000}
+.screw::after{content:"";position:absolute;left:1px;right:1px;top:5px;height:1px;background:#000;transform:rotate(35deg)}
+.s1{left:7px;top:7px}.s2{right:7px;top:7px}.s3{left:7px;bottom:7px}.s4{right:7px;bottom:7px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;padding:4px 10px 12px}
+h1{margin:0;font-weight:400;font-size:clamp(26px,6vw,44px);letter-spacing:.14em;text-shadow:var(--glow);line-height:1}
+h1 small{display:block;font-size:clamp(11px,2.4vw,14px);letter-spacing:.18em;color:var(--g-dim);text-shadow:none;margin-top:6px}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--g-dim)}
+.led{width:12px;height:12px;border-radius:50%;background:#2a0a07;border:1px solid #000;box-shadow:inset 0 0 3px #000}
+.live .led{background:var(--g);box-shadow:var(--glow)} .live .status{color:var(--g)}
+.crt{position:relative;border-radius:14px;padding:10px;background:#000;border:3px solid #1b201c;
+  box-shadow:inset 0 0 40px rgba(51,255,102,.14),inset 0 0 0 2px #000,0 0 0 2px #3a403b;overflow:hidden}
+.crt::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.34) 0,rgba(0,0,0,.34) 1px,transparent 1px,transparent 3px)}
+.crt::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.65) 100%)}
+canvas{display:block;width:100%;height:clamp(200px,38vh,320px);filter:drop-shadow(0 0 5px rgba(51,255,102,.55))}
+.osd{position:absolute;z-index:1;left:18px;top:12px;font-size:12px;color:var(--g-dim);letter-spacing:.1em}
+.osd.r{left:auto;right:18px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 6px}
+button{font:inherit;font-size:14px;letter-spacing:.1em;color:var(--g);cursor:pointer;padding:10px 16px;border-radius:4px;
+  background:linear-gradient(#1b211c,#0b0f0c);border:1px solid var(--g-dim);box-shadow:0 2px 0 #000,inset 0 1px 0 #3a423b;transition:box-shadow .15s,color .15s,border-color .15s}
+button:hover{border-color:var(--g);box-shadow:0 2px 0 #000,var(--glow);text-shadow:0 0 6px var(--g)}
+button:active{transform:translateY(2px);box-shadow:inset 0 2px 6px #000}
+button:focus-visible,input:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+button.on{background:linear-gradient(#0d3d1a,#07200d);color:#eaffef;border-color:var(--g);box-shadow:inset 0 0 12px rgba(51,255,102,.4),var(--glow)}
+button.warn.on{background:linear-gradient(#4a2a00,#241400);border-color:var(--amber);color:var(--amber);box-shadow:inset 0 0 12px rgba(255,176,0,.35),0 0 12px rgba(255,176,0,.35)}
+.msg{flex:1;min-width:200px;font-size:13px;color:var(--g-dim);min-height:1.3em}
+.msg.err{color:var(--red)}
+.eq{margin-top:12px;padding:14px 8px 10px;border-radius:8px;background:linear-gradient(#070a08,#0d120e);border:1px solid #232a24;box-shadow:inset 0 0 20px #000}
+.eq-head{display:flex;justify-content:space-between;align-items:center;padding:0 8px 8px;font-size:13px;color:var(--g-dim);flex-wrap:wrap;gap:8px}
+.bands{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.band{display:flex;flex-direction:column;align-items:center;gap:8px}
+.scale{position:relative;display:flex;align-items:center;gap:6px}
+.ticks{display:flex;flex-direction:column;justify-content:space-between;height:190px;font-size:10px;color:var(--g-dim);text-align:right;width:26px}
+input[type=range]{-webkit-appearance:none;appearance:none;writing-mode:vertical-lr;direction:rtl;width:44px;height:190px;background:transparent;margin:0;cursor:ns-resize}
+input[type=range]::-webkit-slider-runnable-track{width:8px;border-radius:4px;background:linear-gradient(90deg,#000,#1d231e,#000);border:1px solid #333c35;box-shadow:inset 0 0 6px #000}
+input[type=range]::-moz-range-track{width:8px;border-radius:4px;background:#0d110e;border:1px solid #333c35}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:38px;height:20px;margin-left:-16px;border-radius:3px;border:1px solid #000;
+  background:linear-gradient(#8b948c 0,#4a514b 45%,#1c211d 50%,#3b423c 100%);box-shadow:0 3px 6px #000,inset 0 1px 0 #b8c1b9;position:relative}
+input[type=range]::-moz-range-thumb{width:36px;height:18px;border-radius:3px;border:1px solid #000;background:linear-gradient(#8b948c,#2b312c)}
+input[type=range]:hover::-webkit-slider-thumb{box-shadow:0 3px 6px #000,0 0 12px var(--g);border-color:var(--g)}
+input[type=range]:active::-webkit-slider-thumb{background:linear-gradient(#6fe08a,#1a6b2d 45%,#0b3a17 50%,#1d7a33)}
+.val{font-size:14px;min-width:70px;text-align:center;padding:2px 6px;background:#000;border:1px solid var(--g-faint);border-radius:3px;text-shadow:0 0 6px var(--g)}
+.name{font-size:13px;letter-spacing:.08em}
+.hz{font-size:11px;color:var(--g-dim)}
+footer{margin-top:10px;padding:0 8px;font-size:11px;color:var(--g-dim);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+@media (max-width:520px){.ticks{display:none}input[type=range]{width:34px}.val{min-width:56px;font-size:12px}button{padding:9px 11px;font-size:13px}}
+body::before{content:"";position:fixed;inset:0;z-index:100;pointer-events:none;background:linear-gradient(rgba(18,16,16,0) 50%,rgba(0,0,0,.22) 50%),linear-gradient(90deg,rgba(255,0,0,.03),rgba(0,255,0,.01),rgba(0,0,255,.03));background-size:100% 3px,3px 100%}
+.note{margin-top:10px;padding:8px 8px 0;border-top:1px dashed #2f3a31;font-size:11px;color:#7d8a7f;text-align:center}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main class="rack" id="rack">
+  <i class="screw s1"></i><i class="screw s2"></i><i class="screw s3"></i><i class="screw s4"></i>
+  <header>
+    <h1>SPEC 7<small>VINTAGE SOUND LAB // REAL-TIME HARDWARE SPECTRUM &amp; EQ</small></h1>
+    <div class="status"><span class="led"></span><span id="stateTxt">SIN SEÑAL</span></div>
+  </header>
+
+  <section class="crt" aria-label="Analizador de espectro">
+    <div class="osd" id="osdL">20 Hz</div><div class="osd r" id="osdR">PEAK -∞ dB</div>
+    <canvas id="scope" width="900" height="300"></canvas>
+  </section>
+
+  <div class="bar">
+    <button id="btnCapture">CAPTURAR PESTAÑA</button>
+    <button id="btnStop" disabled>DETENER</button>
+    <button id="btnMon" class="warn" aria-pressed="false" title="Antes de capturar: silencia el original en su pestaña y reproduce solo la señal ecualizada">MONITOR SALIDA (DESACTIVADO)</button>
+    <span class="msg" id="msg">Elige una pestaña y marca “Compartir audio de la pestaña”.</span>
+  </div>
+
+  <section class="eq" aria-label="Ecualizador de 5 bandas">
+    <div class="eq-head"><span>// 5-BAND HARDWARE PARAMETRIC EQ · ±12 dB</span><button id="btnReset">RESET EQ</button></div>
+    <div class="bands" id="bands"></div>
+  </section>
+
+  <footer><span>RUTA: FUENTE → EQ → ANALIZADOR</span><span id="outTxt">SALIDA A ALTAVOCES: DESCONECTADA</span></footer>
+  <div class="note">* MODO VISUALIZADOR SEGURO: el audio procesado alimenta el espectro y no se re-emite a la salida, evitando bucles digitales. Si activas el monitor, el navegador silencia el original para no crear eco.</div>
+</main>
+
+<script>
+(() => {
+  const BANDS = [
+    {name:'SUB',  f:60,    type:'lowshelf'},
+    {name:'BASS', f:250,   type:'peaking'},
+    {name:'MID',  f:1000,  type:'peaking'},
+    {name:'HIGH', f:4000,  type:'peaking'},
+    {name:'AIR',  f:12000, type:'highshelf'}
+  ];
+  const $ = id => document.getElementById(id);
+  const rack = $('rack'), msg = $('msg'), canvas = $('scope'), g = canvas.getContext('2d');
+  let ctx = null, source = null, stream = null, analyser = null, filters = [], monitorOn = false, audible = false, running = false;
+  const sliders = [], vals = [];
+
+  // ---- UI de bandas ----
+  const bandsEl = $('bands');
+  BANDS.forEach((b, i) => {
+    const el = document.createElement('div'); el.className = 'band';
+    const fl = b.f >= 1000 ? (b.f / 1000) + ' kHz' : b.f + ' Hz';
+    el.innerHTML = `<div class="val" id="v${i}">0.0 dB</div>
+      <div class="scale"><div class="ticks"><span>+12</span><span>0</span><span>-12</span></div>
+      <input type="range" min="-12" max="12" step="0.5" value="0" id="s${i}" aria-label="${b.name} ${fl}"></div>
+      <div class="name">${b.name}</div><div class="hz">${fl}</div>`;
+    bandsEl.appendChild(el);
+    const s = el.querySelector('input'), v = el.querySelector('.val');
+    sliders.push(s); vals.push(v);
+    s.addEventListener('input', () => setGain(i, parseFloat(s.value)));
+    s.addEventListener('dblclick', () => { s.value = 0; setGain(i, 0); });
+  });
+  function setGain(i, db) {
+    vals[i].textContent = (db > 0 ? '+' : '') + db.toFixed(1) + ' dB';
+    if (filters[i]) filters[i].gain.setTargetAtTime(db, ctx.currentTime, 0.015);
+  }
+  $('btnReset').onclick = () => sliders.forEach((s, i) => { s.value = 0; setGain(i, 0); });
+
+  function say(t, err) { msg.textContent = t; msg.className = 'msg' + (err ? ' err' : ''); }
+
+  // ---- Audio ----
+  async function start() {
+    if (running) return;
+    try {
+      stream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: {echoCancellation:false, noiseSuppression:false, autoGainControl:false, suppressLocalAudioPlayback: audible}});
+    } catch (e) {
+      say(e.name === 'NotAllowedError' ? 'Captura cancelada o bloqueada por el navegador. Si ves este mensaje dentro de un marco, abre la página en su propia pestaña.' : 'Error: ' + e.message, true);
+      return;
+    }
+    if (!stream.getAudioTracks().length) {
+      stream.getTracks().forEach(t => t.stop());
+      say('No llegó audio. Elige una PESTAÑA (Chrome/Edge) y activa “Compartir audio de la pestaña”.', true);
+      return;
+    }
+    stream.getVideoTracks().forEach(t => t.stop()); // solo necesitamos el audio
+    ctx = ctx || new (window.AudioContext || window.webkitAudioContext)({latencyHint:'interactive'});
+    if (ctx.state === 'suspended') await ctx.resume();
+
+    source = ctx.createMediaStreamSource(new MediaStream(stream.getAudioTracks()));
+    filters = BANDS.map((b, i) => {
+      const f = ctx.createBiquadFilter();
+      f.type = b.type; f.frequency.value = b.f; f.Q.value = b.type === 'peaking' ? 1.1 : 0.707;
+      f.gain.value = parseFloat(sliders[i].value);
+      return f;
+    });
+    analyser = ctx.createAnalyser();
+    analyser.fftSize = 2048; analyser.smoothingTimeConstant = 0.8;
+    analyser.minDecibels = -90; analyser.maxDecibels = -10;
+
+    // Fuente → 5 filtros en serie → analizador. NUNCA a destination por defecto.
+    let node = source;
+    filters.forEach(f => { node.connect(f); node = f; });
+    node.connect(analyser);
+
+    stream.getAudioTracks()[0].addEventListener('ended', stop);
+    running = true;
+    rack.classList.add('live'); $('stateTxt').textContent = 'SEÑAL ACTIVA';
+    $('btnCapture').classList.add('on'); $('btnCapture').disabled = true; $('btnStop').disabled = false;
+    const sup = stream.getAudioTracks()[0].getSettings().suppressLocalAudioPlayback === true;
+    if (audible && sup) { analyser.connect(ctx.destination); monitorOn = true; setMonUI(); say('EQ audible: el original quedó silenciado en su pestaña y oyes solo la señal ecualizada.'); }
+    else if (audible) { say('El navegador no silenció el original; EQ audible desactivado para evitar eco.', true); }
+    else say('Capturando. Escuchas el audio original sin retraso; la consola solo analiza.');
+  }
+  function stop() {
+    if (!running) return;
+    running = false;
+    try { analyser.disconnect(); } catch(e){}
+    try { source.disconnect(); filters.forEach(f => f.disconnect()); } catch(e){}
+    stream && stream.getTracks().forEach(t => t.stop());
+    filters = []; analyser = null; source = null; stream = null; monitorOn = false;
+    setMonUI();
+    rack.classList.remove('live'); $('stateTxt').textContent = 'SIN SEÑAL';
+    $('btnCapture').classList.remove('on'); $('btnCapture').disabled = false; $('btnStop').disabled = true;
+    say('Captura detenida.');
+  }
+  function setMonUI() { const b = $('btnMon'); b.classList.toggle('on', audible); b.setAttribute('aria-pressed', audible); b.textContent = 'MONITOR SALIDA (' + (audible ? 'ACTIVO' : 'DESACTIVADO') + ')'; $('outTxt').textContent = 'SALIDA A ALTAVOCES: ' + (monitorOn ? 'EQ (ORIGINAL SILENCIADO)' : 'DESCONECTADA'); }
+  $('btnMon').onclick = () => {
+    if (running) { say('Detén la captura y vuelve a capturar para cambiar este modo.', true); return; }
+    if (!audible && !navigator.mediaDevices.getSupportedConstraints().suppressLocalAudioPlayback) { say('Tu navegador no puede silenciar el original (usa Chrome o Edge recientes).', true); return; }
+    audible = !audible; setMonUI();
+    say(audible ? 'EQ audible: al capturar, el original se silencia localmente y oyes solo la señal ecualizada.' : 'Modo solo análisis: oyes el original, sin EQ audible.');
+  };
+  $('btnCapture').onclick = start; $('btnStop').onclick = stop;
+
+  // ---- Visualizador ----
+  const BARS = 48, SEG_H = 7, SEG_GAP = 2, peaks = new Float32Array(BARS), level = new Float32Array(BARS);
+  function fit() {
+    const r = canvas.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.round(r.width * d); canvas.height = Math.round(r.height * d); g.setTransform(d, 0, 0, d, 0, 0);
+  }
+  window.addEventListener('resize', fit); fit();
+
+  let data = null, t0 = performance.now();
+  function draw() {
+    requestAnimationFrame(draw);
+    const W = canvas.clientWidth, H = canvas.clientHeight;
+    g.clearRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(0,255,65,.08)'; g.lineWidth = 1; g.beginPath();
+    for (let gx = 0; gx < W; gx += 20) { g.moveTo(gx + .5, 0); g.lineTo(gx + .5, H); }
+    for (let gy = 0; gy < H; gy += 20) { g.moveTo(0, gy + .5); g.lineTo(W, gy + .5); }
+    g.stroke();
+    const pad = 6, bw = (W - pad * 2) / BARS, rows = Math.floor((H - 18) / (SEG_H + SEG_GAP));
+    let peakDb = -Infinity;
+    if (running && analyser) {
+      if (!data || data.length !== analyser.frequencyBinCount) data = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(data);
+      const nyq = ctx.sampleRate / 2, minF = 30, maxF = Math.min(16000, nyq);
+      for (let i = 0; i < BARS; i++) {
+        const f1 = minF * Math.pow(maxF / minF, i / BARS), f2 = minF * Math.pow(maxF / minF, (i + 1) / BARS);
+        let a = Math.floor(f1 / nyq * data.length), b = Math.max(a + 1, Math.ceil(f2 / nyq * data.length)), m = 0;
+        for (let k = a; k < b; k++) m = Math.max(m, data[k]);
+        level[i] = m / 255;
+      }
+      const mx = Math.max(...level); peakDb = mx > 0 ? (20 * Math.log10(mx)).toFixed(1) : -Infinity;
+    } else {
+      const t = (performance.now() - t0) / 1000;
+      for (let i = 0; i < BARS; i++) level[i] = 0.02 + 0.015 * (1 + Math.sin(t * 1.5 + i * 0.5));
+    }
+    for (let i = 0; i < BARS; i++) {
+      const lit = Math.round(level[i] * rows);
+      if (lit > peaks[i]) peaks[i] = lit; else peaks[i] = Math.max(0, peaks[i] - 0.12);
+      const x = pad + i * bw + 1, w = bw - 2;
+      for (let r = 0; r < rows; r++) {
+        const y = H - 14 - (r + 1) * (SEG_H + SEG_GAP) + SEG_GAP, p = r / rows;
+        if (r < lit) {
+          const l = 38 + p * 34; // gradiente fósforo: verde profundo → verde brillante/pálido
+          g.fillStyle = p > 0.88 ? '#d8ffe0' : `hsl(${132 - p * 14},100%,${l}%)`;
+        } else g.fillStyle = 'rgba(51,255,102,.07)';
+        g.fillRect(x, y, w, SEG_H);
+      }
+      if (peaks[i] > 1) { g.fillStyle = '#eaffef'; g.fillRect(x, H - 14 - (Math.floor(peaks[i]) + 1) * (SEG_H + SEG_GAP) + SEG_GAP, w, 2); }
+    }
+    g.fillStyle = 'rgba(51,255,102,.5)'; g.font = '10px "Share Tech Mono",monospace';
+    [['30',0],['100',.23],['1k',.54],['4k',.77],['16k',.97]].forEach(([t, p]) => g.fillText(t, pad + p * (W - pad * 2) - 4, H - 2));
+    $('osdR').textContent = 'PEAK ' + (peakDb === -Infinity ? '-∞' : peakDb) + ' dB';
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
